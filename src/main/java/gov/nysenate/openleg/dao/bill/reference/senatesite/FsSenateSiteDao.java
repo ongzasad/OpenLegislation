@@ -75,6 +75,7 @@ public class FsSenateSiteDao implements SenateSiteDao {
         try {  // Delete existing dump if possible
             FileUtils.forceDelete(fragmentFile);
         } catch (FileNotFoundException ignored) {}
+        fragmentFile.setReadable(true);
         FileUtils.write(fragmentFile, prettyPrintJson(fragmentData), Charset.forName("UTF-8"));
     }
 
