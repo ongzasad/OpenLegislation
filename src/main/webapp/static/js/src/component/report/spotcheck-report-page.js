@@ -32,7 +32,7 @@ function ReportCtrl($scope, $location, $routeParams, $mdDialog, paginationModel,
     $scope.diffLoading = false;
     $scope.orderby = 'OBSERVED_DATE';
     $scope.sort = 'DESC';
-
+    $scope.selectedMismatchType = "ALL";
     $scope.mismatchResponse = {
         mismatches: [],
         error: false,
@@ -47,12 +47,13 @@ function ReportCtrl($scope, $location, $routeParams, $mdDialog, paginationModel,
 
     $scope.onDatasourceChange = function () {
         resetPagination();
-        $scope.updateMismatchSummary();
+        $scope.updateMismatchStatusSummary();
         $scope.updateMismatches();
     };
 
     $scope.onTabChange = function () {
         resetPagination();
+        $scope.updateMismatchContentTypeSummary();
         $scope.updateMismatches();
     };
 
@@ -61,9 +62,20 @@ function ReportCtrl($scope, $location, $routeParams, $mdDialog, paginationModel,
             $scope.updateMismatches();
     };
 
-    $scope.updateMismatchSummary = function () {
+    $scope.updateMismatchStatusSummary = function () {
         $scope.summaryResponse.error = false;
-        mismatchSummaryApi.get($scope.datasource.selected.value, $scope.date.endOf('day').format(isoFormat))
+        mismatchSummaryApi.getMismatchStatusSummary($scope.datasource.selected.value, $scope.date.endOf('day').format(isoFormat)).then(function (mismatchSummary) {
+            $scope.summaryResponse.summary = mismatchSummary;
+        })
+            .catch(function (response) {
+                $scope.summaryResponse.error = true;
+                $scope.summaryResponse.errorMessage = response.statusText;
+            });
+    };
+
+    $scope.updateMismatchTypeSummary = function () {
+        $scope.summaryResponse.error = false;
+        mismatchSummaryApi.getMismatchTypeSummary($scope.datasource.selected.value, $scope.date.endOf('day').format(isoFormat), $scope.status)
             .then(function (mismatchSummary) {
                 $scope.summaryResponse.summary = mismatchSummary;
             })
@@ -73,14 +85,31 @@ function ReportCtrl($scope, $location, $routeParams, $mdDialog, paginationModel,
             });
     };
 
-    $scope.updateOrder = function (column,$event) {
-        if ($scope.orderby == column){
-            if($scope.sort == 'DESC')
+    $scope.updateMismatchContentTypeSummary = function () {
+        $scope.summaryResponse.error = false;
+        mismatchSummaryApi.getMismatchContentTypeSummary($scope.datasource.selected.value, $scope.date.endOf('day').format(isoFormat), $scope.status, $scope.selectedMismatchType)
+            .then(function (mismatchSummary) {
+                $scope.summaryResponse.summary = mismatchSummary;
+            })
+            .catch(function (response) {
+                $scope.summaryResponse.error = true;
+                $scope.summaryResponse.errorMessage = response.statusText;
+            });
+    };
+
+    $scope.onMismatchTypeChange = function () {
+        resetPagination();
+        $scope.updateMismatches();
+        $scope.updateMismatchTypeSummary();
+    }
+    $scope.updateOrder = function (column, $event) {
+        if ($scope.orderby == column) {
+            if ($scope.sort == 'DESC')
                 $scope.sort = 'ASC';
             else
                 $scope.sort = 'DESC';
         }
-        else{
+        else {
             $scope.orderby = column;
             $scope.sort = 'DESC';
         }
@@ -94,7 +123,7 @@ function ReportCtrl($scope, $location, $routeParams, $mdDialog, paginationModel,
         ASC.className = 'icon-arrow-long-up';
         var DESC = document.createElement('i');
         DESC.className = 'icon-arrow-long-down';
-        if($scope.sort == "ASC")
+        if ($scope.sort == "ASC")
             event.toElement.appendChild(ASC);
         else
             event.toElement.appendChild(DESC);
@@ -106,11 +135,12 @@ function ReportCtrl($scope, $location, $routeParams, $mdDialog, paginationModel,
         $scope.mismatchResponse.mismatches = [];
         spotcheckMismatchApi.getMismatches($scope.datasource.selected.value, selectedContentType(),
             toMismatchStatus($scope.status), $scope.date.startOf('day').format(isoFormat), $scope.date.endOf('day').format(isoFormat),
-            $scope.pagination.getLimit(), $scope.pagination.getOffset(),$scope.orderby, $scope.sort)
+            $scope.pagination.getLimit(), $scope.pagination.getOffset(), $scope.orderby, $scope.sort, $scope.selectedMismatchType)
             .then(function (result) {
                 $scope.pagination.setTotalItems(result.pagination.total);
                 $scope.mismatchResponse.mismatches = result.mismatches;
                 $scope.loading = false;
+
             })
             .catch(function (response) {
                 $scope.loading = false;
@@ -134,8 +164,8 @@ function ReportCtrl($scope, $location, $routeParams, $mdDialog, paginationModel,
         }
     };
 
-    $scope.numberWithCommas = function(x) {
-        if(x == undefined || x == "" )
+    $scope.numberWithCommas = function (x) {
+        if (x == undefined || x == "")
             return null;
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     };
@@ -164,7 +194,7 @@ function ReportCtrl($scope, $location, $routeParams, $mdDialog, paginationModel,
     // update mismatch when user change status
     $scope.onStatusChange = function () {
         resetPagination();
-        $scope.updateMismatchSummary();
+        $scope.updateMismatchTypeSummary();
         $scope.updateMismatches();
     };
 
@@ -213,7 +243,9 @@ function ReportCtrl($scope, $location, $routeParams, $mdDialog, paginationModel,
             ignoreLevel: 'IGNORE_UNTIL_RESOLVED'
         };
         mismatchIgnoreApi.save(params, function (response) {
-            $scope.updateMismatchSummary();
+            $scope.updateMismatchTypeSummary();
+            $scope.updateMismatchContentTypeSummary();
+            $scope.updateMismatchStatusSummary();
             $scope.updateMismatches();
         })
     }
@@ -251,8 +283,11 @@ function ReportCtrl($scope, $location, $routeParams, $mdDialog, paginationModel,
         resetPagination();
         initializeDate();
         $scope.datasource.selected = $scope.datasource.values[0];
-        $scope.updateMismatchSummary();
+        $scope.updateMismatchStatusSummary();
+        $scope.updateMismatchContentTypeSummary();
+        $scope.updateMismatchTypeSummary();
         $scope.updateMismatches();
+        $scope.mismatchTypes = Object.values(window.mismatchMap);
     };
 
     $scope.init();

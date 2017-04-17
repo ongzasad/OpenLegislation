@@ -21,7 +21,6 @@ public enum SpotCheckMismatchType
 
     REFERENCE_DATA_MISSING("Ref. Missing", SpotCheckRefType.values()),
     OBSERVE_DATA_MISSING("Data Missing", SpotCheckRefType.values()),
-
     /** --- Bill data mismatches --- */
 
     BILL_ACTION("Action", LBDC_DAYBREAK, SENATE_SITE_BILLS),
@@ -114,6 +113,20 @@ public enum SpotCheckMismatchType
 
     public static Set<SpotCheckMismatchType> getMismatchTypes(SpotCheckRefType refType) {
         return refTypeMismatchMap.get(refType);
+    }
+
+    public static SpotCheckMismatchType getSpotCheckMismatchByDisplayName(String displayName) {
+        for (SpotCheckMismatchType spotCheckMismatchType : SpotCheckMismatchType.values()){
+            if (spotCheckMismatchType.displayName.equals(displayName))
+                return spotCheckMismatchType;
+        }
+        return null;
+    }
+
+    public static String getName(SpotCheckMismatchType spotCheckMismatchType) {
+        if (spotCheckMismatchType == null) // if the filter set to ALL then disable the filter by passing ''%' to where statement
+            return "%";
+        return spotCheckMismatchType.name();
     }
 
     public static String getJsonMap() {

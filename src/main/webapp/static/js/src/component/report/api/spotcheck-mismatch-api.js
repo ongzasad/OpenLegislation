@@ -5,7 +5,7 @@ function spotcheckMismatchApi($resource) {
     const DATE_FORMAT = 'M-D-YY h:mm a';
     var mismatchApi = $resource(adminApiPath + "/spotcheck/mismatches");
 
-    function getMismatches(datasource, contentType, mismatchStatuses,fromDate, toDate, limit, offset, orderBy, sort) {
+    function getMismatches(datasource, contentType, mismatchStatuses,fromDate, toDate, limit, offset, orderBy, sort, error) {
         var params = {
             datasource: datasource,
             contentType: contentType,
@@ -14,7 +14,8 @@ function spotcheckMismatchApi($resource) {
             offset: offset,
             toDate: toDate,
             orderBy:orderBy,
-            sort:sort
+            sort:sort,
+            error:error
         };
         // for resolve
         if(mismatchStatuses.indexOf("RESOLVED") != -1)

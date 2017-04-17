@@ -34,7 +34,7 @@ public class SpotcheckReportDaoTests extends BaseTests {
 
     @Test
     public void simpleSummaryTest() {
-        reportDao.getMismatchSummary(SpotCheckDataSource.LBDC, LocalDateTime.now());
+        reportDao.getMismatchStatusSummary(SpotCheckDataSource.LBDC, LocalDateTime.now());
     }
 
     /**
