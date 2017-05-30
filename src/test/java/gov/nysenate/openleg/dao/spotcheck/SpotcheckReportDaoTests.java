@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -149,7 +150,17 @@ public class SpotcheckReportDaoTests extends BaseTests {
 
     @Test
     public void canGetStatusSummary() {
-        MismatchStatusSummary summary = reportDao.getMismatchStatusSummary(SpotCheckDataSource.LBDC, LocalDateTime.now().truncatedTo(ChronoUnit.DAYS), LocalDateTime.now());
+        MismatchStatusSummary summary = reportDao.getMismatchStatusSummary(SpotCheckDataSource.LBDC, LocalDate.now());
+    }
+
+    @Test
+    public void canGetMismatchTypeSummary() {
+        MismatchTypeSummary summary = reportDao.getMismatchTypeSummary(SpotCheckDataSource.LBDC, LocalDate.now(), MismatchStatus.EXISTING);
+    }
+
+    @Test
+    public void canGetContentTypeSummary() {
+        MismatchContentTypeSummary summary = reportDao.getMismatchContentTypeSummary(SpotCheckDataSource.LBDC, LocalDate.now(), MismatchStatus.EXISTING, EnumSet.of(SpotCheckMismatchType.ACTIVE_LIST_CAL_DATE));
     }
 
     private DeNormSpotCheckMismatch queryMostRecentMismatch() {
